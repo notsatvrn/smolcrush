@@ -1,0 +1,13 @@
+[package]
+name = "tinycrush"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+getrandom = { version = "0.2.8", optional = true }
+
+[target.'cfg(target = "wasm32")'.dependencies]
+getrandom = { version = "0.2.8", features = ["js"], optional = true }
+
+[features]
+system-rng = ["dep:getrandom"]
