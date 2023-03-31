@@ -1,6 +1,6 @@
-# `tinycrush`
+# `smolcrush`
 
-a very tiny, very cute RNG library.
+a cute and smol RNG library.
 
 ## info
 - zero dependencies (by default)
