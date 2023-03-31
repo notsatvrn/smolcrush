@@ -1,8 +1,10 @@
 use crate::DEFAULT_SEED_32;
 use crate::rand::Rand32;
 
-// splitmix implementation with 32-bit state and 32-bit seed/output.
-// original implementation [here](https://stackoverflow.com/a/52056161).
+/// splitmix implementation with 32-bit state and 32-bit seed/output.
+/// original implementation [here](https://stackoverflow.com/a/52056161).
+#[cfg_attr(feature = "zeroize", derive(zeroize::Zeroize))]
+#[cfg_attr(feature = "zeroize", zeroize(drop))]
 pub struct SplitMix32(u32);
 
 impl Rand32 for SplitMix32 {

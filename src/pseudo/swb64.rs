@@ -2,8 +2,8 @@ use crate::pseudo::splitmix64::SplitMix64;
 use crate::DEFAULT_SEED_64;
 use crate::rand::Rand64;
 
-// SWB implementation with 8192-bit state and 64-bit seed/output.
-// state generated from seed using SplitMix64.
+// swb implementation with 8192-bit state and 64-bit seed/output.
+// state generated from seed using splitmix64.
 // original implementation [here](http://www.cse.yorku.ca/~oz/marsaglia-rng.html).
 pub struct SWB64([u64; 256], u64, u64, usize);
 

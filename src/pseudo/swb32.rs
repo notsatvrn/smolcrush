@@ -2,8 +2,8 @@ use crate::pseudo::splitmix32::SplitMix32;
 use crate::DEFAULT_SEED_32;
 use crate::rand::Rand32;
 
-// SWB implementation with 8192-bit state and 32-bit seed/output.
-// state generated from seed using SplitMix32.
+// swb implementation with 8192-bit state and 32-bit seed/output.
+// state generated from seed using splitmix32.
 // original implementation [here](http://www.cse.yorku.ca/~oz/marsaglia-rng.html).
 pub struct SWB32([u32; 256], u32, u32, usize);
 

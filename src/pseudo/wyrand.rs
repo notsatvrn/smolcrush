@@ -2,10 +2,10 @@ use crate::DEFAULT_SEED_64;
 use crate::rand::Rand64;
 
 // wyrand implementation with 64-bit state and 64-bit seed/output.
-// original implementation [here](https://github.com/Absolucy/rand-wyrand/blob/main/src/lib.rs).
-pub struct WyRand64(u64);
+// original implementation [here](https://github.com/wangyi-fudan/wyhash/blob/master/wyhash.h).
+pub struct WyRand(u64);
 
-impl Rand64 for WyRand64 {
+impl Rand64 for WyRand {
     #[inline]
     fn from_seed_u64(seed: u64) -> Self {
         Self(seed)
@@ -19,7 +19,7 @@ impl Rand64 for WyRand64 {
     }
 }
 
-impl Default for WyRand64 {
+impl Default for WyRand {
     fn default() -> Self {
         Self::from_seed_u64(DEFAULT_SEED_64)
     }
@@ -30,8 +30,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn wyrand64() {
-        let mut rng = WyRand64::default();
+    fn wyrand() {
+        let mut rng = WyRand::default();
         assert_eq!(rng.next_u64(), 6736572058214918811);
     }
 }

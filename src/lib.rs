@@ -1,3 +1,4 @@
+#![no_std]
 #![forbid(unsafe_code)]
 
 pub const DEFAULT_SEED_32: u32 = 0xB0BACAFE;

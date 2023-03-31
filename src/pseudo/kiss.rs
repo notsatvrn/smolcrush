@@ -2,9 +2,11 @@ use crate::pseudo::splitmix32::SplitMix32;
 use crate::DEFAULT_SEED_32;
 use crate::rand::Rand32;
 
-// KISS implementation with 128-bit state and 32-bit seed/output.
-// state generated from seed using splitmix32.
-// original implementation [here](http://www.cse.yorku.ca/~oz/marsaglia-rng.html).
+/// KISS implementation with 128-bit state and 32-bit seed/output.
+/// state generated from seed using splitmix32.
+/// original implementation [here](http://www.cse.yorku.ca/~oz/marsaglia-rng.html).
+#[cfg_attr(feature = "zeroize", derive(zeroize::Zeroize))]
+#[cfg_attr(feature = "zeroize", zeroize(drop))]
 pub struct KISS(u32, u32, u32, u32);
 
 impl Rand32 for KISS {

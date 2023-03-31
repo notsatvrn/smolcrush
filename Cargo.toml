@@ -5,9 +5,35 @@ edition = "2021"
 
 [dependencies]
 getrandom = { version = "0.2.8", optional = true }
+zeroize = { version = "1.5.7", features = ["derive"], optional = true }
 
 [target.'cfg(target = "wasm32")'.dependencies]
 getrandom = { version = "0.2.8", features = ["js"], optional = true }
 
 [features]
+default = ["wyrand"]
 system-rng = ["dep:getrandom"]
+
+# splitmix
+splitmix32 = []
+splitmix64 = []
+
+# wyrand
+wyrand = []
+
+# xorshift
+xorshift32 = []
+xorshift64 = []
+xorshift64star = []
+xorshift128 = []
+xorshift128plus = []
+xorshift1024plus = []
+xorshift1024star = []
+
+# other George Marsaglia PRNGs
+kiss = []
+swb32 = []
+swb64 = []
+
+# xorwow
+xorwow = []
