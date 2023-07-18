@@ -11,7 +11,7 @@ zeroize = { version = "1.5.7", features = ["derive"], optional = true }
 getrandom = { version = "0.2.8", features = ["js"], optional = true }
 
 [features]
-default = ["wyrand"]
+default = ["wyrand", "xorwow"]
 system-rng = ["dep:getrandom"]
 
 # splitmix
