@@ -36,4 +36,4 @@ swb32 = []
 swb64 = []
 
 # xorwow
-xorwow = []
+xorwow = ["splitmix32"]

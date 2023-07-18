@@ -1,7 +1,7 @@
 // SplitMix
-#[cfg(feature = "splixmix32")]
+#[cfg(feature = "splitmix32")]
 pub mod splitmix32;
-#[cfg(feature = "splixmix64")]
+#[cfg(feature = "splitmix64")]
 pub mod splitmix64;
 
 // WyRand
@@ -35,22 +35,3 @@ pub mod swb64;
 // xorwow
 #[cfg(feature = "xorwow")]
 pub mod xorwow;
-
-/*
-#[cfg(test)]
-mod tests {
-    use super::splitmix64::SplitMix64;
-    use crate::rand::Rand64;
-
-    #[test]
-    fn range() {
-        let mut rng = SplitMix64::default();
-
-        for _ in 0..5 {
-            let v = rng.next_range::<f32>(-10.0..10.0);
-            println!("{}", v);
-            assert!(10.0 >= v && v >= -10.0);
-        }
-    }
-}
-*/
