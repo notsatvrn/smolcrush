@@ -7,7 +7,7 @@ pub struct WyRand(u64);
 
 impl Rand64 for WyRand {
     #[inline]
-    fn from_seed_u64(seed: u64) -> Self {
+    fn seed_from_u64(seed: u64) -> Self {
         Self(seed)
     }
 
@@ -21,7 +21,7 @@ impl Rand64 for WyRand {
 
 impl Default for WyRand {
     fn default() -> Self {
-        Self::from_seed_u64(DEFAULT_SEED_64)
+        Self::seed_from_u64(DEFAULT_SEED_64)
     }
 }
 

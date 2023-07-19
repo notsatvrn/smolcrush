@@ -12,6 +12,7 @@ license = "MIT"
 
 [dependencies]
 getrandom = { version = "0.2.8", optional = true }
+rand_core = { version = "0.6.4", optional = true }
 zeroize = { version = "1.5.7", features = ["derive"], optional = true }
 
 [target.'cfg(target = "wasm32")'.dependencies]
@@ -20,6 +21,9 @@ getrandom = { version = "0.2.8", features = ["js"], optional = true }
 [features]
 default = ["wyrand", "xorwow"]
 system-rng = ["dep:getrandom"]
+32bit = ["kiss", "splitmix32", "xorshift32", "xorshift128", "xorwow"]
+64bit = ["splitmix64", "xorshift64", "xorshift64star", "xorshift128plus", "xorshift1024plus", "xorshift1024star"]
+all = ["32bit", "64bit"]
 
 # splitmix
 splitmix32 = []
@@ -32,15 +36,15 @@ wyrand = []
 xorshift32 = []
 xorshift64 = []
 xorshift64star = []
-xorshift128 = []
-xorshift128plus = []
-xorshift1024plus = []
-xorshift1024star = []
+xorshift128 = ["splitmix32"]
+xorshift128plus = ["splitmix64"]
+xorshift1024plus = ["splitmix64"]
+xorshift1024star = ["splitmix64"]
 
 # other George Marsaglia PRNGs
 kiss = []
-swb32 = []
-swb64 = []
+swb32 = ["splitmix32"]
+swb64 = ["splitmix64"]
 
 # xorwow
 xorwow = ["splitmix32"]

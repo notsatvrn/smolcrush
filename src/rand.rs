@@ -1,7 +1,7 @@
 //use core::ops::Range;
 
 pub trait Rand32 {
-    fn from_seed_u32(seed: u32) -> Self;
+    fn seed_from_u32(seed: u32) -> Self;
 
     fn next_u32(&mut self) -> u32;
 
@@ -24,7 +24,7 @@ pub trait Rand32 {
 }
 
 pub trait Rand64 {
-    fn from_seed_u64(seed: u64) -> Self;
+    fn seed_from_u64(seed: u64) -> Self;
 
     fn next_u64(&mut self) -> u64;
 
@@ -51,8 +51,8 @@ pub trait Output: Sized {
     fn adapt_u32(original: u32) -> Self;
 }
 
-const F32_U64: f32 = f32::MAX / u64::MAX as f32;
-const F32_U32: f32 = f32::MAX / u32::MAX as f32;
+pub(crate) const F32_U64: f32 = f32::MAX / u64::MAX as f32;
+pub(crate) const F32_U32: f32 = f32::MAX / u32::MAX as f32;
 
 impl Output for f32 {
     #[inline(always)]
@@ -61,8 +61,8 @@ impl Output for f32 {
     fn adapt_u32(original: u32) -> f32 { original as f32 * F32_U32 }
 }
 
-const F64_U64: f64 = f64::MAX / u64::MAX as f64;
-const F64_U32: f64 = f64::MAX / u32::MAX as f64;
+pub(crate) const F64_U64: f64 = f64::MAX / u64::MAX as f64;
+pub(crate) const F64_U32: f64 = f64::MAX / u32::MAX as f64;
 
 impl Output for f64 {
     #[inline(always)]
@@ -142,8 +142,8 @@ impl Output for usize {
     }
 }
 
-const U64_U8: u64 = u64::MAX / u8::MAX as u64;
-const U32_U8: u32 = u32::MAX / u8::MAX as u32;
+pub(crate) const U64_U8: u64 = u64::MAX / u8::MAX as u64;
+pub(crate) const U32_U8: u32 = u32::MAX / u8::MAX as u32;
 
 impl Output for u8 {
     #[inline(always)]
@@ -152,8 +152,8 @@ impl Output for u8 {
     fn adapt_u32(original: u32) -> u8 { (original / U32_U8) as u8 }
 }
 
-const U64_U16: u64 = u64::MAX / u16::MAX as u64;
-const U32_U16: u32 = u32::MAX / u16::MAX as u32;
+pub(crate) const U64_U16: u64 = u64::MAX / u16::MAX as u64;
+pub(crate) const U32_U16: u32 = u32::MAX / u16::MAX as u32;
 
 impl Output for u16 {
     #[inline(always)]
@@ -162,7 +162,7 @@ impl Output for u16 {
     fn adapt_u32(original: u32) -> u16 { (original / U32_U16) as u16 }
 }
 
-const U64_U32: u64 = u64::MAX / u32::MAX as u64;
+pub(crate) const U64_U32: u64 = u64::MAX / u32::MAX as u64;
 
 impl Output for u32 {
     #[inline(always)]
