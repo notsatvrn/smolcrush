@@ -1,7 +1,14 @@
 [package]
 name = "smolcrush"
+authors = ["satvrn"]
+description = "A cute and smol RNG library."
+homepage = "https://github.com/notsatvrn/smolcrush"
+repository = "https://github.com/notsatvrn/smolcrush"
+readme = "README.md"
+keywords = ["rng", "random"]
 version = "0.0.1"
 edition = "2021"
+license = "MIT"
 
 [dependencies]
 getrandom = { version = "0.2.8", optional = true }
