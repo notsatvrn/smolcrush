@@ -15,9 +15,12 @@ pub struct SWB32([u32; 256], u32, u32, usize);
 
 #[inline]
 fn seed_from_u32(seed: u32) -> SWB32 {
+    #[cfg(not(feature = "rand_core"))]
+    let mut sm32 = SplitMix32::seed_from_u32(seed);
+    #[cfg(feature = "rand_core")]
     let mut sm32 = SplitMix32::seed_from_u64(seed as u64);
-    let mut state = [0; 256];
 
+    let mut state = [0; 256];
     for i in &mut state {
         *i = sm32.next_u32();
     }
