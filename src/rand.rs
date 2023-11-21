@@ -1,186 +1,137 @@
-//use core::ops::Range;
+pub trait Rand: Sized {
+    // seeding
 
-pub trait Rand32 {
-    fn seed_from_u32(seed: u32) -> Self;
-
-    fn next_u32(&mut self) -> u32;
-
-    #[inline(always)]
-    fn next_bytes(&mut self) -> [u8; 16] {
-        u128::adapt_u32(self.next_u32()).to_ne_bytes()
+    #[inline]
+    fn seed_from_u32(seed: u32) -> Self {
+        Self::seed_from_u64(seed as u64 | seed as u64 >> 32)
+    }
+    #[inline]
+    fn seed_from_u64(seed: u64) -> Self {
+        Self::seed_from_u32(seed as u32)
     }
 
-    #[inline(always)]
+    // next basic integer types
+
+    #[inline]
+    fn next_u32(&mut self) -> u32 {
+        self.next_u64() as u32
+    }
+    #[inline]
+    fn next_u64(&mut self) -> u64 {
+        self.next_u32() as u64 | self.next_u32() as u64 >> 32
+    }
+    #[inline]
+    fn next_u128(&mut self) -> u128 {
+        self.next_u64() as u128 | self.next_u64() as u128 >> 64
+    }
+
+    // next advanced
+
+    #[inline]
+    fn fill_bytes(&mut self, bytes: &mut [u8]) {
+        let mut i: usize = 0;
+
+        while i < bytes.len() {
+            bytes[i] = self.next_u32() as u8;
+            i += 1;
+        }
+    }
+
+    #[inline]
     fn next<T: Output>(&mut self) -> T {
-        T::adapt_u32(self.next_u32())
+        T::from_rand(self)
     }
-
-    /*
-    #[inline(always)]
-    fn next_range<T: Output>(&mut self, range: Range<T>) -> T {
-        
-    }
-    */
-}
-
-pub trait Rand64 {
-    fn seed_from_u64(seed: u64) -> Self;
-
-    fn next_u64(&mut self) -> u64;
-
-    #[inline(always)]
-    fn next_bytes(&mut self) -> [u8; 16] {
-        u128::adapt_u64(self.next_u64()).to_ne_bytes()
-    }
-
-    #[inline(always)]
-    fn next<T: Output>(&mut self) -> T {
-        T::adapt_u64(self.next_u64())
-    }
-
-    /*
-    #[inline(always)]
-    fn next_range<T: Output>(&mut self, range: Range<T>) -> T {
-        
-    }
-    */
 }
 
 pub trait Output: Sized {
-    fn adapt_u64(original: u64) -> Self;
-    fn adapt_u32(original: u32) -> Self;
+    fn from_rand<T: Rand>(rand: &mut T) -> Self;
 }
 
-pub(crate) const F32_U64: f32 = f32::MAX / u64::MAX as f32;
-pub(crate) const F32_U32: f32 = f32::MAX / u32::MAX as f32;
+pub(crate) const F32_EXACT_MAX: u64 = 2e+23 as u64 - 1;
+pub(crate) const F64_EXACT_MAX: u128 = 2e+53 as u128 - 1;
 
 impl Output for f32 {
-    #[inline(always)]
-    fn adapt_u64(original: u64) -> f32 { original as f32 * F32_U64 }
-    #[inline(always)]
-    fn adapt_u32(original: u32) -> f32 { original as f32 * F32_U32 }
+    #[inline]
+    fn from_rand<T: Rand>(rand: &mut T) -> Self {
+        ((rand.next_u32() as u64 * F32_EXACT_MAX) / u32::MAX as u64) as f32
+    }
 }
 
-pub(crate) const F64_U64: f64 = f64::MAX / u64::MAX as f64;
-pub(crate) const F64_U32: f64 = f64::MAX / u32::MAX as f64;
-
 impl Output for f64 {
-    #[inline(always)]
-    fn adapt_u64(original: u64) -> Self { original as f64 * F64_U64 }
-    #[inline(always)]
-    fn adapt_u32(original: u32) -> Self { original as f64 * F64_U32 }
+    #[inline]
+    fn from_rand<T: Rand>(rand: &mut T) -> Self {
+        ((rand.next_u64() as u128 * F64_EXACT_MAX) / u64::MAX as u128) as f64
+    }
 }
 
 impl Output for isize {
-    #[inline(always)]
-    fn adapt_u64(original: u64) -> isize {
+    #[inline]
+    fn from_rand<T: Rand>(rand: &mut T) -> Self {
         if cfg!(target_pointer_width = "64") {
-            original as isize
+            rand.next_u64() as isize
         } else {
-            i32::adapt_u64(original) as isize
-        }
-    }
-    #[inline(always)]
-    fn adapt_u32(original: u32) -> isize {
-        if cfg!(target_pointer_width = "64") {
-            i64::adapt_u32(original) as isize
-        } else {
-            original as isize
+            rand.next_u32() as isize
         }
     }
 }
 
 impl Output for i8 {
-    #[inline(always)]
-    fn adapt_u64(original: u64) -> i8 { u8::adapt_u64(original) as i8 }
-    #[inline(always)]
-    fn adapt_u32(original: u32) -> i8 { u8::adapt_u32(original) as i8 }
+    #[inline]
+    fn from_rand<T: Rand>(rand: &mut T) -> Self { rand.next_u32() as i8 }
 }
 
 impl Output for i16 {
-    #[inline(always)]
-    fn adapt_u64(original: u64) -> i16 { u16::adapt_u64(original) as i16 }
-    #[inline(always)]
-    fn adapt_u32(original: u32) -> i16 { u16::adapt_u32(original) as i16 }
+    #[inline]
+    fn from_rand<T: Rand>(rand: &mut T) -> Self { rand.next_u32() as i16 }
 }
 
 impl Output for i32 {
-    #[inline(always)]
-    fn adapt_u64(original: u64) -> i32 { u32::adapt_u64(original) as i32 }
-    #[inline(always)]
-    fn adapt_u32(original: u32) -> i32 { original as i32 }
+    #[inline]
+    fn from_rand<T: Rand>(rand: &mut T) -> Self { rand.next_u32() as i32 }
 }
 
 impl Output for i64 {
-    #[inline(always)]
-    fn adapt_u64(original: u64) -> i64 { original as i64 }
-    #[inline(always)]
-    fn adapt_u32(original: u32) -> i64 { u64::adapt_u32(original) as i64 }
+    #[inline]
+    fn from_rand<T: Rand>(rand: &mut T) -> Self { rand.next_u64() as i64 }
 }
 
 impl Output for i128 {
-    #[inline(always)]
-    fn adapt_u64(original: u64) -> Self { u128::adapt_u64(original) as i128 }
-    #[inline(always)]
-    fn adapt_u32(original: u32) -> Self { u128::adapt_u32(original) as i128 }
+    #[inline]
+    fn from_rand<T: Rand>(rand: &mut T) -> Self { rand.next_u128() as i128 }
 }
 
 impl Output for usize {
-    fn adapt_u64(original: u64) -> usize {
+    #[inline]
+    fn from_rand<T: Rand>(rand: &mut T) -> Self {
         if cfg!(target_pointer_width = "64") {
-            original as usize
+            rand.next_u64() as usize
         } else {
-            u32::adapt_u64(original) as usize
-        }
-    }
-    fn adapt_u32(original: u32) -> usize {
-        if cfg!(target_pointer_width = "64") {
-            u64::adapt_u32(original) as usize
-        } else {
-            original as usize
+            rand.next_u32() as usize
         }
     }
 }
-
-pub(crate) const U64_U8: u64 = u64::MAX / u8::MAX as u64;
-pub(crate) const U32_U8: u32 = u32::MAX / u8::MAX as u32;
 
 impl Output for u8 {
-    #[inline(always)]
-    fn adapt_u64(original: u64) -> u8 { (original / U64_U8) as u8 }
-    #[inline(always)]
-    fn adapt_u32(original: u32) -> u8 { (original / U32_U8) as u8 }
+    #[inline]
+    fn from_rand<T: Rand>(rand: &mut T) -> Self { rand.next_u32() as u8 }
 }
-
-pub(crate) const U64_U16: u64 = u64::MAX / u16::MAX as u64;
-pub(crate) const U32_U16: u32 = u32::MAX / u16::MAX as u32;
 
 impl Output for u16 {
-    #[inline(always)]
-    fn adapt_u64(original: u64) -> u16 { (original / U64_U16) as u16 }
-    #[inline(always)]
-    fn adapt_u32(original: u32) -> u16 { (original / U32_U16) as u16 }
+    #[inline]
+    fn from_rand<T: Rand>(rand: &mut T) -> Self { rand.next_u32() as u16 }
 }
 
-pub(crate) const U64_U32: u64 = u64::MAX / u32::MAX as u64;
-
 impl Output for u32 {
-    #[inline(always)]
-    fn adapt_u64(original: u64) -> u32 { (original / U64_U32) as u32 }
-    #[inline(always)]
-    fn adapt_u32(original: u32) -> u32 { original }
+    #[inline]
+    fn from_rand<T: Rand>(rand: &mut T) -> Self { rand.next_u32() }
 }
 
 impl Output for u64 {
-    #[inline(always)]
-    fn adapt_u64(original: u64) -> u64 { original }
-    #[inline(always)]
-    fn adapt_u32(original: u32) -> u64 { original as u64 * original as u64 }
+    #[inline]
+    fn from_rand<T: Rand>(rand: &mut T) -> Self { rand.next_u64() }
 }
 
 impl Output for u128 {
-    #[inline(always)]
-    fn adapt_u64(original: u64) -> u128 { original as u128 * original as u128 }
-    #[inline(always)]
-    fn adapt_u32(original: u32) -> u128 { u128::adapt_u64(u64::adapt_u32(original)) }
+    #[inline]
+    fn from_rand<T: Rand>(rand: &mut T) -> Self { rand.next_u128() }
 }

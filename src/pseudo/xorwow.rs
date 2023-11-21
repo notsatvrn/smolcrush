@@ -2,7 +2,7 @@ use crate::pseudo::splitmix32::SplitMix32;
 use crate::DEFAULT_SEED_32;
 
 #[cfg(not(feature = "rand_core"))]
-use crate::rand::Rand32;
+use crate::rand::Rand;
 
 #[cfg(feature = "rand_core")]
 use rand_core::impls::fill_bytes_via_next;
@@ -12,6 +12,8 @@ use rand_core::{RngCore, SeedableRng, Error};
 /// xorwow implementation with 192-bit state and 32-bit seed/output.
 /// state generated from seed using splitmix32.
 /// original implementation [here](https://en.wikipedia.org/wiki/Xorshift).
+#[cfg_attr(feature = "zeroize", derive(zeroize::Zeroize))]
+#[cfg_attr(feature = "zeroize", zeroize(drop))]
 pub struct Xorwow(u32, u32, u32, u32, u32, u32);
 
 #[inline]
@@ -49,7 +51,7 @@ fn next_u32(rng: &mut Xorwow) -> u32 {
 }
 
 #[cfg(not(feature = "rand_core"))]
-impl Rand32 for Xorwow {
+impl Rand for Xorwow {
     #[inline]
     fn seed_from_u32(seed: u32) -> Self {
         seed_from_u32(seed)
@@ -70,7 +72,7 @@ impl RngCore for Xorwow {
 
     #[inline]
     fn next_u64(&mut self) -> u64 {
-        self.next_u32() as u64 * self.next_u32() as u64
+        self.next_u32() as u64 | self.next_u32() as u64 >> 32
     }
 
     #[inline]

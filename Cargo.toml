@@ -6,17 +6,17 @@ homepage = "https://github.com/notsatvrn/smolcrush"
 repository = "https://github.com/notsatvrn/smolcrush"
 readme = "README.md"
 keywords = ["rng", "random"]
-version = "0.0.3"
+version = "0.1.0"
 edition = "2021"
 license = "MIT"
 
 [dependencies]
-getrandom = { version = "0.2.8", optional = true }
-rand_core = { version = "0.6.4", optional = true }
-zeroize = { version = "1.5.7", features = ["derive"], optional = true }
+getrandom = { version = "0.2", optional = true }
+rand_core = { version = "0.6", optional = true }
+zeroize = { version = "1.7", features = ["derive"], optional = true }
 
 [target.'cfg(target = "wasm32")'.dependencies]
-getrandom = { version = "0.2.8", features = ["js"], optional = true }
+getrandom = { version = "0.2", features = ["js"], optional = true }
 
 [features]
 default = ["wyrand", "xorwow"]

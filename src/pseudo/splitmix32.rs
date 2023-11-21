@@ -1,6 +1,7 @@
 use crate::DEFAULT_SEED_32;
+
 #[cfg(not(feature = "rand_core"))]
-use crate::rand::Rand32;
+use crate::rand::Rand;
 
 #[cfg(feature = "rand_core")]
 use rand_core::impls::fill_bytes_via_next;
@@ -23,7 +24,7 @@ fn next_u32(rng: &mut SplitMix32) -> u32 {
 }
 
 #[cfg(not(feature = "rand_core"))]
-impl Rand32 for SplitMix32 {
+impl Rand for SplitMix32 {
     #[inline]
     fn seed_from_u32(seed: u32) -> Self {
         Self(seed)
@@ -44,7 +45,7 @@ impl RngCore for SplitMix32 {
 
     #[inline]
     fn next_u64(&mut self) -> u64 {
-        self.next_u32() as u64 * self.next_u32() as u64
+        self.next_u32() as u64 | self.next_u32() as u64 >> 32
     }
 
     #[inline]

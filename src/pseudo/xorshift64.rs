@@ -1,16 +1,17 @@
 use crate::DEFAULT_SEED_64;
+
 #[cfg(not(feature = "rand_core"))]
-use crate::rand::Rand64;
+use crate::rand::Rand;
 
 #[cfg(feature = "rand_core")]
 use rand_core::impls::fill_bytes_via_next;
 #[cfg(feature = "rand_core")]
 use rand_core::{RngCore, SeedableRng, Error};
-#[cfg(feature = "rand_core")]
-use crate::rand::U64_U32;
 
 // xorshift implementation with 64-bit state and 64-bit seed/output.
 // original implementation [here](https://en.wikipedia.org/wiki/Xorshift).
+#[cfg_attr(feature = "zeroize", derive(zeroize::Zeroize))]
+#[cfg_attr(feature = "zeroize", zeroize(drop))]
 pub struct XorShift64(u64);
 
 #[inline]
@@ -22,7 +23,7 @@ fn next_u64(rng: &mut XorShift64) -> u64 {
 }
 
 #[cfg(not(feature = "rand_core"))]
-impl Rand64 for XorShift64 {
+impl Rand for XorShift64 {
     #[inline]
     fn seed_from_u64(seed: u64) -> Self {
         Self(seed)
@@ -38,7 +39,7 @@ impl Rand64 for XorShift64 {
 impl RngCore for XorShift64 {
     #[inline]
     fn next_u32(&mut self) -> u32 {
-        (next_u64(self) / U64_U32) as u32
+        next_u64(self) as u32
     }
 
     #[inline]

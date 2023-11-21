@@ -2,7 +2,7 @@ use crate::pseudo::splitmix32::SplitMix32;
 use crate::DEFAULT_SEED_32;
 
 #[cfg(not(feature = "rand_core"))]
-use crate::rand::Rand32;
+use crate::rand::Rand;
 
 #[cfg(feature = "rand_core")]
 use rand_core::impls::fill_bytes_via_next;
@@ -45,7 +45,7 @@ fn next_u32(rng: &mut KISS) -> u32 {
 }
 
 #[cfg(not(feature = "rand_core"))]
-impl Rand32 for KISS {
+impl Rand for KISS {
     #[inline]
     fn seed_from_u32(seed: u32) -> Self {
         seed_from_u32(seed)

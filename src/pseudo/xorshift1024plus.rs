@@ -1,18 +1,19 @@
 use crate::pseudo::splitmix64::SplitMix64;
 use crate::DEFAULT_SEED_64;
+
 #[cfg(not(feature = "rand_core"))]
-use crate::rand::Rand64;
+use crate::rand::Rand;
 
 #[cfg(feature = "rand_core")]
 use rand_core::impls::fill_bytes_via_next;
 #[cfg(feature = "rand_core")]
 use rand_core::{RngCore, SeedableRng, Error};
-#[cfg(feature = "rand_core")]
-use crate::rand::U64_U32;
 
 // xorshift+ implementation with 1024-bit state and 64-bit seed/output.
 // state generated from seed using splitmix64.
 // original implementation [here](https://vigna.di.unimi.it/ftp/papers/xorshiftplus.pdf).
+#[cfg_attr(feature = "zeroize", derive(zeroize::Zeroize))]
+#[cfg_attr(feature = "zeroize", zeroize(drop))]
 pub struct XorShift1024Plus([u64; 16], usize);
 
 #[inline]
@@ -43,7 +44,7 @@ fn next_u64(rng: &mut XorShift1024Plus) -> u64 {
 }
 
 #[cfg(not(feature = "rand_core"))]
-impl Rand64 for XorShift1024Plus {
+impl Rand for XorShift1024Plus {
     #[inline]
     fn seed_from_u64(seed: u64) -> Self {
         seed_from_u64(seed)
@@ -59,7 +60,7 @@ impl Rand64 for XorShift1024Plus {
 impl RngCore for XorShift1024Plus {
     #[inline]
     fn next_u32(&mut self) -> u32 {
-        (next_u64(self) / U64_U32) as u32
+        next_u64(self) as u32
     }
 
     #[inline]

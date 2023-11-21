@@ -1,7 +1,8 @@
 use crate::pseudo::splitmix32::SplitMix32;
 use crate::DEFAULT_SEED_32;
+
 #[cfg(not(feature = "rand_core"))]
-use crate::rand::Rand32;
+use crate::rand::Rand;
 
 #[cfg(feature = "rand_core")]
 use rand_core::impls::fill_bytes_via_next;
@@ -11,6 +12,8 @@ use rand_core::{RngCore, SeedableRng, Error};
 // swb implementation with 8192-bit state and 32-bit seed/output.
 // state generated from seed using splitmix32.
 // original implementation [here](http://www.cse.yorku.ca/~oz/marsaglia-rng.html).
+#[cfg_attr(feature = "zeroize", derive(zeroize::Zeroize))]
+#[cfg_attr(feature = "zeroize", zeroize(drop))]
 pub struct SWB32([u32; 256], u32, u32, usize);
 
 #[inline]
@@ -42,7 +45,7 @@ fn next_u32(rng: &mut SWB32) -> u32 {
 }
 
 #[cfg(not(feature = "rand_core"))]
-impl Rand32 for SWB32 {
+impl Rand for SWB32 {
     #[inline]
     fn seed_from_u32(seed: u32) -> Self {
         seed_from_u32(seed)
@@ -63,7 +66,7 @@ impl RngCore for SWB32 {
 
     #[inline]
     fn next_u64(&mut self) -> u64 {
-        self.next_u32() as u64 * self.next_u32() as u64
+        self.next_u32() as u64 | self.next_u32() as u64 >> 32
     }
 
     #[inline]
