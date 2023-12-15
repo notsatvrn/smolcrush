@@ -1,12 +1,5 @@
-use crate::DEFAULT_SEED_64;
-
-#[cfg(not(feature = "rand_core"))]
-use crate::rand::Rand;
-
-#[cfg(feature = "rand_core")]
 use rand_core::impls::fill_bytes_via_next;
-#[cfg(feature = "rand_core")]
-use rand_core::{RngCore, SeedableRng, Error};
+use rand_core::{Error, RngCore, SeedableRng};
 
 // xorshift* implementation with 64-bit state and 64-bit seed/output.
 // original implementation [here](https://en.wikipedia.org/wiki/Xorshift).
@@ -14,37 +7,18 @@ use rand_core::{RngCore, SeedableRng, Error};
 #[cfg_attr(feature = "zeroize", zeroize(drop))]
 pub struct XorShift64Star(u64);
 
-#[inline]
-fn next_u64(rng: &mut XorShift64Star) -> u64 {
-    rng.0 ^= rng.0.wrapping_shl(12);
-    rng.0 ^= rng.0.wrapping_shr(25);
-    rng.0 ^= rng.0.wrapping_shl(27);
-    rng.0.wrapping_mul(0x2545F4914F6CDD1D)
-}
-
-#[cfg(not(feature = "rand_core"))]
-impl Rand for XorShift64Star {
-    #[inline]
-    fn seed_from_u64(seed: u64) -> Self {
-        Self(seed)
-    }
-
-    #[inline]
-    fn next_u64(&mut self) -> u64 {
-        next_u64(self)
-    }
-}
-
-#[cfg(feature = "rand_core")]
 impl RngCore for XorShift64Star {
     #[inline]
     fn next_u32(&mut self) -> u32 {
-        next_u64(self) as u32
+        self.next_u64() as u32
     }
 
     #[inline]
     fn next_u64(&mut self) -> u64 {
-        next_u64(self)
+        self.0 ^= self.0.wrapping_shl(12);
+        self.0 ^= self.0.wrapping_shr(25);
+        self.0 ^= self.0.wrapping_shl(27);
+        self.0.wrapping_mul(0x2545F4914F6CDD1D)
     }
 
     #[inline]
@@ -59,7 +33,6 @@ impl RngCore for XorShift64Star {
     }
 }
 
-#[cfg(feature = "rand_core")]
 impl SeedableRng for XorShift64Star {
     type Seed = [u8; 8];
 
@@ -76,18 +49,8 @@ impl SeedableRng for XorShift64Star {
 }
 
 impl Default for XorShift64Star {
+    #[inline]
     fn default() -> Self {
-        Self::seed_from_u64(DEFAULT_SEED_64)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn xorshift64star() {
-        let mut rng = XorShift64Star::default();
-        assert_eq!(rng.next_u64(), 794785870555032153);
+        Self::seed_from_u64(crate::DEFAULT_SEED)
     }
 }

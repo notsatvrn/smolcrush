@@ -16,10 +16,10 @@
 //! The current MSRV is 1.60.0.
 
 #![no_std]
-#![forbid(unsafe_code)]
+#![forbid(future_incompatible, unsafe_code)]
 
-pub const DEFAULT_SEED_32: u32 = 0xB0BACAFE;
-pub const DEFAULT_SEED_64: u64 = 0xB0BACAFEBADDC0DE;
+pub const DEFAULT_SEED: u64 = 0xB0BACAFEBADDC0DE;
 
-pub mod rand;
+#[cfg(feature = "system-rng")]
+pub use rand_core::OsRng as OSRand;
 pub mod pseudo;

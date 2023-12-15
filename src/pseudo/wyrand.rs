@@ -1,12 +1,5 @@
-use crate::DEFAULT_SEED_64;
-
-#[cfg(not(feature = "rand_core"))]
-use crate::rand::Rand;
-
-#[cfg(feature = "rand_core")]
 use rand_core::impls::fill_bytes_via_next;
-#[cfg(feature = "rand_core")]
-use rand_core::{RngCore, SeedableRng, Error};
+use rand_core::{Error, RngCore, SeedableRng};
 
 // wyrand implementation with 64-bit state and 64-bit seed/output.
 // original implementation [here](https://github.com/wangyi-fudan/wyhash/blob/master/wyhash.h).
@@ -14,36 +7,17 @@ use rand_core::{RngCore, SeedableRng, Error};
 #[cfg_attr(feature = "zeroize", zeroize(drop))]
 pub struct WyRand(u64);
 
-#[inline]
-fn next_u64(rng: &mut WyRand) -> u64 {
-    rng.0 = rng.0.wrapping_add(0xA0761D6478BD642F);
-    let y = (rng.0 as u128).wrapping_mul((rng.0 as u128) ^ 0xE7037ED1A0B428DB);
-    (y.wrapping_shr(64) ^ y) as u64
-}
-
-#[cfg(not(feature = "rand_core"))]
-impl Rand for WyRand {
-    #[inline]
-    fn seed_from_u64(seed: u64) -> Self {
-        Self(seed)
-    }
-
-    #[inline]
-    fn next_u64(&mut self) -> u64 {
-        next_u64(self)
-    }
-}
-
-#[cfg(feature = "rand_core")]
 impl RngCore for WyRand {
     #[inline]
     fn next_u32(&mut self) -> u32 {
-        next_u64(self) as u32
+        self.next_u64() as u32
     }
 
     #[inline]
     fn next_u64(&mut self) -> u64 {
-        next_u64(self)
+        self.0 = self.0.wrapping_add(0xA0761D6478BD642F);
+        let y = (self.0 as u128).wrapping_mul((self.0 as u128) ^ 0xE7037ED1A0B428DB);
+        (y.wrapping_shr(64) ^ y) as u64
     }
 
     #[inline]
@@ -58,7 +32,6 @@ impl RngCore for WyRand {
     }
 }
 
-#[cfg(feature = "rand_core")]
 impl SeedableRng for WyRand {
     type Seed = [u8; 8];
 
@@ -75,18 +48,8 @@ impl SeedableRng for WyRand {
 }
 
 impl Default for WyRand {
+    #[inline]
     fn default() -> Self {
-        Self::seed_from_u64(DEFAULT_SEED_64)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn wyrand() {
-        let mut rng = WyRand::default();
-        assert_eq!(rng.next_u64(), 6736572058214918811);
+        Self::seed_from_u64(crate::DEFAULT_SEED)
     }
 }

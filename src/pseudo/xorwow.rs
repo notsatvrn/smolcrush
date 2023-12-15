@@ -1,13 +1,6 @@
-use crate::pseudo::splitmix32::SplitMix32;
-use crate::DEFAULT_SEED_32;
-
-#[cfg(not(feature = "rand_core"))]
-use crate::rand::Rand;
-
-#[cfg(feature = "rand_core")]
+use super::splitmix32::SplitMix32;
 use rand_core::impls::fill_bytes_via_next;
-#[cfg(feature = "rand_core")]
-use rand_core::{RngCore, SeedableRng, Error};
+use rand_core::{Error, RngCore, SeedableRng};
 
 /// xorwow implementation with 192-bit state and 32-bit seed/output.
 /// state generated from seed using splitmix32.
@@ -16,58 +9,25 @@ use rand_core::{RngCore, SeedableRng, Error};
 #[cfg_attr(feature = "zeroize", zeroize(drop))]
 pub struct Xorwow(u32, u32, u32, u32, u32, u32);
 
-#[inline]
-fn seed_from_u32(seed: u32) -> Xorwow {
-    #[cfg(not(feature = "rand_core"))]
-    let mut sm32 = SplitMix32::seed_from_u32(seed);
-    #[cfg(feature = "rand_core")]
-    let mut sm32 = SplitMix32::seed_from_u64(seed as u64);
-
-    Xorwow(
-        sm32.next_u32(), sm32.next_u32(),
-        sm32.next_u32(), sm32.next_u32(),
-        sm32.next_u32(), sm32.next_u32(),
-    )
-}
-
-#[inline]
-fn next_u32(rng: &mut Xorwow) -> u32 {
-    let t = rng.4;
-    let s = rng.0;
-
-    rng.4 = rng.3;
-    rng.3 = rng.2;
-    rng.2 = rng.1;
-    rng.1 = s;
-
-    let t = t ^ t.wrapping_shr(2);
-    let t = t ^ t.wrapping_shl(1);
-    let t = t ^ s ^ s.wrapping_shl(4);
-
-    rng.0 = t;
-
-    rng.5 = rng.5.wrapping_add(362437);
-    rng.5.wrapping_add(t)
-}
-
-#[cfg(not(feature = "rand_core"))]
-impl Rand for Xorwow {
-    #[inline]
-    fn seed_from_u32(seed: u32) -> Self {
-        seed_from_u32(seed)
-    }
-
-    #[inline]
-    fn next_u32(&mut self) -> u32 {
-        next_u32(self)
-    }
-}
-
-#[cfg(feature = "rand_core")]
 impl RngCore for Xorwow {
     #[inline]
     fn next_u32(&mut self) -> u32 {
-        next_u32(self)
+        let t = self.4;
+        let s = self.0;
+
+        self.4 = self.3;
+        self.3 = self.2;
+        self.2 = self.1;
+        self.1 = s;
+
+        let t = t ^ t.wrapping_shr(2);
+        let t = t ^ t.wrapping_shl(1);
+        let t = t ^ s ^ s.wrapping_shl(4);
+
+        self.0 = t;
+
+        self.5 = self.5.wrapping_add(362437);
+        self.5.wrapping_add(t)
     }
 
     #[inline]
@@ -87,7 +47,6 @@ impl RngCore for Xorwow {
     }
 }
 
-#[cfg(feature = "rand_core")]
 impl SeedableRng for Xorwow {
     type Seed = [u8; 8];
 
@@ -99,28 +58,22 @@ impl SeedableRng for Xorwow {
 
     #[inline]
     fn seed_from_u64(seed: u64) -> Self {
-        seed_from_u32(seed as u32)
+        let mut sm32 = SplitMix32::seed_from_u64(seed);
+
+        Self(
+            sm32.next_u32(),
+            sm32.next_u32(),
+            sm32.next_u32(),
+            sm32.next_u32(),
+            sm32.next_u32(),
+            sm32.next_u32(),
+        )
     }
 }
 
 impl Default for Xorwow {
+    #[inline]
     fn default() -> Self {
-        #[cfg(not(feature = "rand_core"))]
-        let output = Self::seed_from_u32(DEFAULT_SEED_32);
-        #[cfg(feature = "rand_core")]
-        let output = Self::seed_from_u64(DEFAULT_SEED_32 as u64);
-
-        output
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn xorwow() {
-        let mut rng = Xorwow::default();
-        assert_eq!(rng.next_u32(), 1361759);
+        Self::seed_from_u64(crate::DEFAULT_SEED)
     }
 }

@@ -1,18 +1,21 @@
 [package]
 name = "smolcrush"
 authors = ["satvrn"]
-description = "A cute and smol RNG library."
+description = "A smol RNG library for Rust."
+documentation = "https://docs.rs/smolcrush"
 homepage = "https://github.com/notsatvrn/smolcrush"
 repository = "https://github.com/notsatvrn/smolcrush"
 readme = "README.md"
-keywords = ["rng", "random"]
-version = "0.1.0"
+keywords = ["rng", "random", "rand"]
+categories = ["no-std", "wasm"]
+version = "0.2.0"
+rust-version = "1.60.0"
 edition = "2021"
 license = "MIT"
 
 [dependencies]
+rand_core = "0.6"
 getrandom = { version = "0.2", optional = true }
-rand_core = { version = "0.6", optional = true }
 zeroize = { version = "1.7", features = ["derive"], optional = true }
 
 [target.'cfg(target = "wasm32")'.dependencies]
@@ -20,10 +23,10 @@ getrandom = { version = "0.2", features = ["js"], optional = true }
 
 [features]
 default = ["wyrand", "xorwow"]
-system-rng = ["dep:getrandom"]
+system-rng = ["dep:getrandom", "rand_core/getrandom"]
 32bit = ["kiss", "splitmix32", "swb32", "xorshift32", "xorshift128", "xorwow"]
 64bit = ["splitmix64", "swb64", "xorshift64", "xorshift64star", "xorshift128plus", "xorshift1024plus", "xorshift1024star"]
-all = ["32bit", "64bit"]
+all = ["32bit", "64bit", "system-rng"]
 
 # splitmix
 splitmix32 = []

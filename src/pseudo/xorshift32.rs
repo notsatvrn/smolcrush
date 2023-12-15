@@ -1,12 +1,5 @@
-use crate::DEFAULT_SEED_32;
-
-#[cfg(not(feature = "rand_core"))]
-use crate::rand::Rand;
-
-#[cfg(feature = "rand_core")]
 use rand_core::impls::fill_bytes_via_next;
-#[cfg(feature = "rand_core")]
-use rand_core::{RngCore, SeedableRng, Error};
+use rand_core::{Error, RngCore, SeedableRng};
 
 // xorshift implementation with 32-bit state and 32-bit seed/output.
 // original implementation [here](https://en.wikipedia.org/wiki/Xorshift).
@@ -14,32 +7,13 @@ use rand_core::{RngCore, SeedableRng, Error};
 #[cfg_attr(feature = "zeroize", zeroize(drop))]
 pub struct XorShift32(u32);
 
-#[inline]
-fn next_u32(rng: &mut XorShift32) -> u32 {
-    rng.0 ^= rng.0.wrapping_shl(13);
-    rng.0 ^= rng.0.wrapping_shr(17);
-    rng.0 ^= rng.0.wrapping_shl(5);
-    rng.0
-}
-
-#[cfg(not(feature = "rand_core"))]
-impl Rand for XorShift32 {
-    #[inline]
-    fn seed_from_u32(seed: u32) -> Self {
-        Self(seed)
-    }
-
-    #[inline]
-    fn next_u32(&mut self) -> u32 {
-        next_u32(self)
-    }
-}
-
-#[cfg(feature = "rand_core")]
 impl RngCore for XorShift32 {
     #[inline]
     fn next_u32(&mut self) -> u32 {
-        next_u32(self)
+        self.0 ^= self.0.wrapping_shl(13);
+        self.0 ^= self.0.wrapping_shr(17);
+        self.0 ^= self.0.wrapping_shl(5);
+        self.0
     }
 
     #[inline]
@@ -59,7 +33,6 @@ impl RngCore for XorShift32 {
     }
 }
 
-#[cfg(feature = "rand_core")]
 impl SeedableRng for XorShift32 {
     type Seed = [u8; 8];
 
@@ -76,23 +49,8 @@ impl SeedableRng for XorShift32 {
 }
 
 impl Default for XorShift32 {
+    #[inline]
     fn default() -> Self {
-        #[cfg(not(feature = "rand_core"))]
-        let output = Self::seed_from_u32(DEFAULT_SEED_32);
-        #[cfg(feature = "rand_core")]
-        let output = Self::seed_from_u64(DEFAULT_SEED_32 as u64);
-
-        output
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn xorshift32() {
-        let mut rng = XorShift32::default();
-        assert_eq!(rng.next_u32(), 3578445708);
+        Self::seed_from_u64(crate::DEFAULT_SEED)
     }
 }

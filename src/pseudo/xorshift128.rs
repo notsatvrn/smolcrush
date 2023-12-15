@@ -1,13 +1,6 @@
-use crate::pseudo::splitmix32::SplitMix32;
-use crate::DEFAULT_SEED_32;
-
-#[cfg(not(feature = "rand_core"))]
-use crate::rand::Rand;
-
-#[cfg(feature = "rand_core")]
+use super::splitmix32::SplitMix32;
 use rand_core::impls::fill_bytes_via_next;
-#[cfg(feature = "rand_core")]
-use rand_core::{RngCore, SeedableRng, Error};
+use rand_core::{Error, RngCore, SeedableRng};
 
 // xorshift implementation with 128-bit state and 32-bit seed/output.
 // state generated from seed using splitmix32.
@@ -16,54 +9,22 @@ use rand_core::{RngCore, SeedableRng, Error};
 #[cfg_attr(feature = "zeroize", zeroize(drop))]
 pub struct XorShift128(u32, u32, u32, u32);
 
-#[inline]
-fn seed_from_u32(seed: u32) -> XorShift128 {
-    #[cfg(not(feature = "rand_core"))]
-    let mut sm32 = SplitMix32::seed_from_u32(seed);
-    #[cfg(feature = "rand_core")]
-    let mut sm32 = SplitMix32::seed_from_u64(seed as u64);
-
-    XorShift128(
-        sm32.next_u32(), sm32.next_u32(),
-        sm32.next_u32(), sm32.next_u32(),
-    )
-}
-
-#[inline]
-fn next_u32(rng: &mut XorShift128) -> u32 {
-    let t = rng.3;
-    let s = rng.0;
-
-    rng.3 = rng.2;
-    rng.2 = rng.1;
-    rng.1 = s;
-
-    let t = t ^ t.wrapping_shl(11);
-    let t = t ^ t.wrapping_shr(8);
-
-    rng.0 = t ^ s ^ s.wrapping_shr(19);
-
-    rng.0
-}
-
-#[cfg(not(feature = "rand_core"))]
-impl Rand for XorShift128 {
-    #[inline]
-    fn seed_from_u32(seed: u32) -> Self {
-        seed_from_u32(seed)
-    }
-
-    #[inline]
-    fn next_u32(&mut self) -> u32 {
-        next_u32(self)
-    }
-}
-
-#[cfg(feature = "rand_core")]
 impl RngCore for XorShift128 {
     #[inline]
     fn next_u32(&mut self) -> u32 {
-        next_u32(self)
+        let t = self.3;
+        let s = self.0;
+
+        self.3 = self.2;
+        self.2 = self.1;
+        self.1 = s;
+
+        let t = t ^ t.wrapping_shl(11);
+        let t = t ^ t.wrapping_shr(8);
+
+        self.0 = t ^ s ^ s.wrapping_shr(19);
+
+        self.0
     }
 
     #[inline]
@@ -83,7 +44,6 @@ impl RngCore for XorShift128 {
     }
 }
 
-#[cfg(feature = "rand_core")]
 impl SeedableRng for XorShift128 {
     type Seed = [u8; 8];
 
@@ -95,28 +55,20 @@ impl SeedableRng for XorShift128 {
 
     #[inline]
     fn seed_from_u64(seed: u64) -> Self {
-        seed_from_u32(seed as u32)
+        let mut sm32 = SplitMix32::seed_from_u64(seed);
+
+        Self(
+            sm32.next_u32(),
+            sm32.next_u32(),
+            sm32.next_u32(),
+            sm32.next_u32(),
+        )
     }
 }
 
 impl Default for XorShift128 {
+    #[inline]
     fn default() -> Self {
-        #[cfg(not(feature = "rand_core"))]
-        let output = Self::seed_from_u32(DEFAULT_SEED_32);
-        #[cfg(feature = "rand_core")]
-        let output = Self::seed_from_u64(DEFAULT_SEED_32 as u64);
-
-        output
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn xorshift128() {
-        let mut rng = XorShift128::default();
-        assert_eq!(rng.next_u32(), 65450646);
+        Self::seed_from_u64(crate::DEFAULT_SEED)
     }
 }

@@ -1,69 +1,31 @@
-use crate::pseudo::splitmix64::SplitMix64;
-use crate::DEFAULT_SEED_64;
-
-#[cfg(not(feature = "rand_core"))]
-use crate::rand::Rand;
-
-#[cfg(feature = "rand_core")]
+use super::splitmix64::SplitMix64;
 use rand_core::impls::fill_bytes_via_next;
-#[cfg(feature = "rand_core")]
-use rand_core::{RngCore, SeedableRng, Error};
+use rand_core::{Error, RngCore, SeedableRng};
 
 // swb implementation with 8192-bit state and 64-bit seed/output.
 // state generated from seed using splitmix64.
-// original implementation [here](http://www.cse.yorku.ca/~oz/marsaglia-rng.html).
+// original implementation [here](http://www.cse.yorku.ca/~oz/marsaglia-self.html).
 #[cfg_attr(feature = "zeroize", derive(zeroize::Zeroize))]
 #[cfg_attr(feature = "zeroize", zeroize(drop))]
 pub struct SWB64([u64; 256], u64, u64, usize);
 
-#[inline]
-fn seed_from_u64(seed: u64) -> SWB64 {
-    let mut sm64 = SplitMix64::seed_from_u64(seed);
-    let mut state = [0; 256];
-
-    for i in &mut state {
-        *i = sm64.next_u64();
-    }
-
-    SWB64(state, sm64.next_u64(), sm64.next_u64(), 0)
-}
-
-#[inline]
-fn next_u64(rng: &mut SWB64) -> u64 {
-    rng.3 = rng.3.wrapping_add(1);
-
-    let bro = rng.1.min(rng.2);
-
-    rng.1 = rng.0[rng.3.wrapping_add(34) & 255];
-    rng.2 = rng.0[rng.3.wrapping_add(19) & 255].wrapping_add(bro);
-
-    rng.0[rng.3] = rng.1.wrapping_sub(rng.2);
-    rng.0[rng.3]
-}
-
-#[cfg(not(feature = "rand_core"))]
-impl Rand for SWB64 {
-    #[inline]
-    fn seed_from_u64(seed: u64) -> Self {
-        seed_from_u64(seed)
-    }
-
-    #[inline]
-    fn next_u64(&mut self) -> u64 {
-        next_u64(self)
-    }
-}
-
-#[cfg(feature = "rand_core")]
 impl RngCore for SWB64 {
     #[inline]
     fn next_u32(&mut self) -> u32 {
-        next_u64(self) as u32
+        self.next_u64() as u32
     }
 
     #[inline]
     fn next_u64(&mut self) -> u64 {
-        next_u64(self)
+        self.3 = self.3.wrapping_add(1);
+
+        let bro = self.1.min(self.2);
+
+        self.1 = self.0[self.3.wrapping_add(34) & 255];
+        self.2 = self.0[self.3.wrapping_add(19) & 255].wrapping_add(bro);
+
+        self.0[self.3] = self.1.wrapping_sub(self.2);
+        self.0[self.3]
     }
 
     #[inline]
@@ -78,7 +40,6 @@ impl RngCore for SWB64 {
     }
 }
 
-#[cfg(feature = "rand_core")]
 impl SeedableRng for SWB64 {
     type Seed = [u8; 8];
 
@@ -90,23 +51,20 @@ impl SeedableRng for SWB64 {
 
     #[inline]
     fn seed_from_u64(seed: u64) -> Self {
-        seed_from_u64(seed)
+        let mut sm64 = SplitMix64::seed_from_u64(seed);
+        let mut state = [0; 256];
+
+        for i in &mut state {
+            *i = sm64.next_u64();
+        }
+
+        Self(state, sm64.next_u64(), sm64.next_u64(), 0)
     }
 }
 
 impl Default for SWB64 {
+    #[inline]
     fn default() -> Self {
-        Self::seed_from_u64(DEFAULT_SEED_64)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn swb64() {
-        let mut rng = SWB64::default();
-        assert_eq!(rng.next_u64(), 7874828165597159784);
+        Self::seed_from_u64(crate::DEFAULT_SEED)
     }
 }
