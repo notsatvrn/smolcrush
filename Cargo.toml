@@ -8,7 +8,7 @@ repository = "https://github.com/notsatvrn/smolcrush"
 readme = "README.md"
 keywords = ["rng", "random", "rand"]
 categories = ["no-std", "wasm"]
-version = "0.2.1"
+version = "0.3.0"
 rust-version = "1.60.0"
 edition = "2021"
 license = "MIT"
@@ -18,7 +18,7 @@ rand_core = "0.6"
 getrandom = { version = "0.2", optional = true }
 zeroize = { version = "1.7", features = ["derive"], optional = true }
 
-[target.'cfg(target = "wasm32")'.dependencies]
+[target.'cfg(target_family = "wasm")'.dependencies]
 getrandom = { version = "0.2", features = ["js"], optional = true }
 
 [features]

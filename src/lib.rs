@@ -27,19 +27,15 @@ pub mod pseudo;
 
 macro_rules! core32 {
     ($struct:ident, $sel:ident $next:block) => {
-        use rand_core::{Error, RngCore};
+        use rand_core::{RngCore, Error, impls::fill_bytes_via_next};
         impl RngCore for $struct {
             #[inline]
             fn next_u32(&mut $sel) -> u32 $next
-
             #[inline]
-            fn next_u64(&mut self) -> u64 {
-                self.next_u32() as u64 | self.next_u32() as u64 >> 32
-            }
+            fn next_u64(&mut self) -> u64 { self.next_u32() as u64 | self.next_u32() as u64 >> 32 }
 
             #[inline]
             fn fill_bytes(&mut self, dest: &mut [u8]) {
-                use rand_core::impls::fill_bytes_via_next;
                 fill_bytes_via_next(self, dest);
             }
 
@@ -55,19 +51,15 @@ pub(crate) use core32;
 
 macro_rules! core64 {
     ($struct:ident, $sel:ident $next:block) => {
-        use rand_core::{Error, RngCore};
+        use rand_core::{RngCore, Error, impls::fill_bytes_via_next};
         impl RngCore for $struct {
             #[inline]
-            fn next_u32(&mut self) -> u32 {
-                self.next_u64() as u32
-            }
-
+            fn next_u32(&mut self) -> u32 { self.next_u64() as u32 }
             #[inline]
             fn next_u64(&mut $sel) -> u64 $next
 
             #[inline]
             fn fill_bytes(&mut self, dest: &mut [u8]) {
-                use rand_core::impls::fill_bytes_via_next;
                 fill_bytes_via_next(self, dest);
             }
 
