@@ -9,8 +9,8 @@ A smol RNG library for Rust.
 - 100% safe
 
 ## Optional Features
-- **`system-rng`** adds support for using system RNG using the [`getrandom`](https://crates.io/crates/getrandom) crate.
-- **`zeroize`** adds zeroing support to all RNGs using the [`zeroize`](https://crates.io/crates/zeroize) crate.
+- **`system-rng`** adds support for using system RNG using the [`getrandom`](https://crates.io/crates/getrandom) crate
+- **`zeroize`** adds zeroing support to all RNGs using the [`zeroize`](https://crates.io/crates/zeroize) crate
 
 ## **M**inimum **S**upported **R**ust **V**ersion (MSRV)
 
